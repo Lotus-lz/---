@@ -644,6 +644,7 @@
       const taskList = document.querySelector("#task-list");
       const memoForm = document.querySelector("#memo-form");
       const statusMessage = document.querySelector("#storage-status");
+      const storageErrors = new Map();
       let memos = loadData(memoStorageKey, defaultMemos, isMemo);
       let tasks = loadData(taskStorageKey, defaultTasks, isTask);
 
@@ -730,7 +731,7 @@
           }
           return data;
         } catch (error) {
-          showStorageError(`读取本地数据失败，已暂时显示示例内容。${error.message || error}`);
+          showStorageError(key, `读取本地数据失败，已暂时显示示例内容。${error.message || error}`);
           return defaults.map((item) => ({ ...item }));
         }
       }
@@ -738,15 +739,21 @@
       function persist(key, data) {
         try {
           localStorage.setItem(key, JSON.stringify(data));
-          statusMessage.hidden = true;
+          storageErrors.delete(key);
+          renderStorageErrors();
         } catch (error) {
-          showStorageError(`保存到本地失败；本次修改暂时只在当前页面有效。${error.message || error}`);
+          showStorageError(key, `保存到本地失败；本次修改暂时只在当前页面有效。${error.message || error}`);
         }
       }
 
-      function showStorageError(message) {
-        statusMessage.textContent = message;
-        statusMessage.hidden = false;
+      function showStorageError(key, message) {
+        storageErrors.set(key, message);
+        renderStorageErrors();
+      }
+
+      function renderStorageErrors() {
+        statusMessage.textContent = Array.from(storageErrors.values()).join(" ");
+        statusMessage.hidden = storageErrors.size === 0;
       }
 
       function isMemo(item) {
