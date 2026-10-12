@@ -370,6 +370,33 @@
       display: grid;
     }
 
+    .task-form {
+      display: grid;
+      gap: 11px;
+      margin-bottom: 17px;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fcfbf7;
+    }
+
+    .task-form-fields {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 10px;
+    }
+
+    .task-form label {
+      display: grid;
+      gap: 6px;
+      color: #77796f;
+      font-size: 11px;
+    }
+
+    .task-form .add-button {
+      justify-self: start;
+    }
+
     .task-row {
       display: grid;
       grid-template-columns: 72px minmax(0, 1fr) 20px 28px;
@@ -520,6 +547,14 @@
         grid-template-columns: 66px minmax(0, 1fr) 20px 28px;
         gap: 9px;
       }
+
+      .task-form-fields {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+
+      .task-form-fields label:first-child {
+        grid-column: 1 / -1;
+      }
     }
   </style>
 </head>
@@ -589,6 +624,23 @@
 
         <div class="panel-body">
           <p class="day-label" id="day-label"></p>
+          <form class="task-form" id="task-form">
+            <div class="task-form-fields">
+              <label>
+                任务名称
+                <input class="field" type="text" name="task-name" placeholder="输入任务名称" required maxlength="100">
+              </label>
+              <label>
+                开始时间
+                <input class="field" type="time" name="task-start" value="08:00" required>
+              </label>
+              <label>
+                结束时间
+                <input class="field" type="time" name="task-end" value="09:00" required>
+              </label>
+            </div>
+            <button class="add-button" type="submit"><span aria-hidden="true">＋</span> 添加任务</button>
+          </form>
           <div class="task-list" id="task-list" aria-label="今日任务列表"></div>
 
           <div class="progress" id="task-progress">
@@ -643,6 +695,7 @@
       const memoList = document.querySelector("#memo-list");
       const taskList = document.querySelector("#task-list");
       const memoForm = document.querySelector("#memo-form");
+      const taskForm = document.querySelector("#task-form");
       const statusMessage = document.querySelector("#storage-status");
       const storageErrors = new Map();
       let memos = loadData(memoStorageKey, defaultMemos, isMemo);
@@ -682,6 +735,40 @@
         memoForm.reset();
         titleInput.focus();
       });
+
+      taskForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const nameInput = taskForm.elements.namedItem("task-name");
+        const startInput = taskForm.elements.namedItem("task-start");
+        const endInput = taskForm.elements.namedItem("task-end");
+        const name = nameInput.value.trim();
+        const startTime = startInput.value;
+        const endTime = endInput.value;
+
+        if (!name || !startTime || !endTime) {
+          return;
+        }
+        if (endTime <= startTime) {
+          endInput.setCustomValidity("结束时间需晚于开始时间。");
+          endInput.reportValidity();
+          return;
+        }
+
+        tasks.push({
+          id: createId(),
+          time: `${startTime} – ${endTime}`,
+          name,
+          note: "",
+          completed: false
+        });
+        persist(taskStorageKey, tasks);
+        renderTasks();
+        taskForm.reset();
+        nameInput.focus();
+      });
+
+      taskForm.elements.namedItem("task-start").addEventListener("input", clearTimeValidation);
+      taskForm.elements.namedItem("task-end").addEventListener("input", clearTimeValidation);
 
       memoList.addEventListener("click", (event) => {
         const button = event.target.closest("[data-delete-memo]");
@@ -771,6 +858,10 @@
           typeof item.name === "string" &&
           typeof item.note === "string" &&
           typeof item.completed === "boolean";
+      }
+
+      function clearTimeValidation(event) {
+        event.currentTarget.setCustomValidity("");
       }
 
       function createId() {
