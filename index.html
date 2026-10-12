@@ -274,7 +274,7 @@
 
     .memo-card {
       position: relative;
-      padding: 15px 16px 14px 18px;
+      padding: 15px 46px 14px 18px;
       border: 1px solid var(--line);
       border-radius: 12px;
       background: #fffefa;
@@ -315,6 +315,39 @@
       font-size: 10px;
     }
 
+    .delete-button {
+      display: inline-grid;
+      width: 28px;
+      height: 28px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #a3a49b;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .delete-button:hover {
+      border-color: #f0dfd8;
+      background: #fbf1ed;
+      color: #b7684d;
+    }
+
+    .delete-button:focus-visible {
+      outline: 2px solid #b7684d;
+      outline-offset: 2px;
+    }
+
+    .memo-delete {
+      position: absolute;
+      top: 11px;
+      right: 10px;
+    }
+
     .day-label {
       display: flex;
       align-items: center;
@@ -339,7 +372,7 @@
 
     .task-row {
       display: grid;
-      grid-template-columns: 72px 1fr 20px;
+      grid-template-columns: 72px minmax(0, 1fr) 20px 28px;
       align-items: center;
       gap: 12px;
       min-height: 67px;
@@ -377,6 +410,10 @@
       cursor: pointer;
     }
 
+    .task-delete {
+      justify-self: end;
+    }
+
     .task-row.is-done .task-name {
       color: #9a9b92;
       text-decoration: line-through;
@@ -412,10 +449,32 @@
     }
 
     .progress-fill {
-      width: 40%;
+      width: 0;
       height: 100%;
       border-radius: inherit;
       background: #829b82;
+      transition: width 180ms ease;
+    }
+
+    .empty-state {
+      margin: 18px 0 2px;
+      padding: 20px 14px;
+      border: 1px dashed #e6e6de;
+      border-radius: 11px;
+      color: #999a90;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .storage-status {
+      margin: -18px 0 20px;
+      padding: 11px 14px;
+      border: 1px solid #efd4c7;
+      border-radius: 10px;
+      background: #fff5ef;
+      color: #8b503c;
+      font-size: 12px;
+      line-height: 1.6;
     }
 
     .footer-note {
@@ -458,7 +517,7 @@
       }
 
       .task-row {
-        grid-template-columns: 66px 1fr 20px;
+        grid-template-columns: 66px minmax(0, 1fr) 20px 28px;
         gap: 9px;
       }
     }
@@ -476,9 +535,10 @@
       </div>
       <div class="today">
         <span class="today-dot" aria-hidden="true"></span>
-        <time datetime="2026-10-12">星期一 · 10月12日</time>
+        <time id="today-date"></time>
       </div>
     </header>
+    <p class="storage-status" id="storage-status" role="status" aria-live="polite" hidden></p>
 
     <section class="intro" aria-labelledby="page-title">
       <h1 id="page-title">把今天，慢慢过好。</h1>
@@ -495,34 +555,23 @@
               <p class="panel-subtitle">随手记下，别让灵感溜走</p>
             </div>
           </div>
-          <span class="count">今日 2 条</span>
+          <span class="count" id="memo-count">共 0 条</span>
         </header>
 
         <div class="panel-body">
-          <form class="memo-form">
+          <form class="memo-form" id="memo-form">
             <label>
               <span class="sr-only">备忘标题</span>
-              <input class="field" type="text" name="memo-title" placeholder="给这条备忘起个标题">
+              <input class="field" type="text" name="memo-title" placeholder="给这条备忘起个标题" required maxlength="80">
             </label>
             <label>
               <span class="sr-only">备忘内容</span>
-              <textarea class="field" name="memo-content" placeholder="写下你想记住的内容..."></textarea>
+              <textarea class="field" name="memo-content" placeholder="写下你想记住的内容..." required maxlength="1000"></textarea>
             </label>
-            <button class="add-button" type="button"><span aria-hidden="true">＋</span> 添加备忘</button>
+            <button class="add-button" type="submit"><span aria-hidden="true">＋</span> 添加备忘</button>
           </form>
 
-          <div class="memo-list" aria-label="备忘录列表">
-            <article class="memo-card">
-              <h3 class="memo-title">记得给阳台的薄荷浇水</h3>
-              <p class="memo-content">最近天气有点干，顺便看看新长出来的小叶子。</p>
-              <time class="memo-time" datetime="2026-10-12T08:15">今天 08:15</time>
-            </article>
-            <article class="memo-card">
-              <h3 class="memo-title">周末咖啡豆补货</h3>
-              <p class="memo-content">试试上次朋友推荐的耶加雪菲，记得带上帆布袋。</p>
-              <time class="memo-time" datetime="2026-10-12T09:32">今天 09:32</time>
-            </article>
-          </div>
+          <div class="memo-list" id="memo-list" aria-label="备忘录列表"></div>
         </div>
       </section>
 
@@ -535,61 +584,20 @@
               <p class="panel-subtitle">按自己的节奏，一件一件完成</p>
             </div>
           </div>
-          <span class="count">2 / 5 完成</span>
+          <span class="count" id="task-count">0 / 0 完成</span>
         </header>
 
         <div class="panel-body">
-          <p class="day-label">MONDAY · 今天</p>
-          <div class="task-list" aria-label="今日任务列表">
-            <div class="task-row is-done">
-              <time class="task-time" datetime="08:00">08:00 – 09:00</time>
-              <div>
-                <p class="task-name">晨间整理与早餐</p>
-                <p class="task-note">慢慢开始新的一天</p>
-              </div>
-              <input class="task-check" type="checkbox" checked aria-label="晨间整理与早餐已完成">
-            </div>
-            <div class="task-row is-done">
-              <time class="task-time" datetime="09:30">09:30 – 10:30</time>
-              <div>
-                <p class="task-name">回复邮件，整理本周重点</p>
-                <p class="task-note">先处理最重要的三件事</p>
-              </div>
-              <input class="task-check" type="checkbox" checked aria-label="回复邮件，整理本周重点已完成">
-            </div>
-            <div class="task-row">
-              <time class="task-time" datetime="11:00">11:00 – 12:00</time>
-              <div>
-                <p class="task-name">专注工作时间</p>
-                <p class="task-note">完成提案初稿 · 不看手机</p>
-              </div>
-              <input class="task-check" type="checkbox" aria-label="专注工作时间是否完成">
-            </div>
-            <div class="task-row">
-              <time class="task-time" datetime="14:00">14:00 – 15:30</time>
-              <div>
-                <p class="task-name">阅读与灵感记录</p>
-                <p class="task-note">留一点时间给自己</p>
-              </div>
-              <input class="task-check" type="checkbox" aria-label="阅读与灵感记录是否完成">
-            </div>
-            <div class="task-row">
-              <time class="task-time" datetime="17:30">17:30 – 18:00</time>
-              <div>
-                <p class="task-name">散步，顺路买些水果</p>
-                <p class="task-note">到户外透透气</p>
-              </div>
-              <input class="task-check" type="checkbox" aria-label="散步，顺路买些水果是否完成">
-            </div>
-          </div>
+          <p class="day-label" id="day-label"></p>
+          <div class="task-list" id="task-list" aria-label="今日任务列表"></div>
 
-          <div class="progress" aria-label="今日计划完成进度：5 项中的 2 项">
+          <div class="progress" id="task-progress">
             <div class="progress-copy">
               <span>今日完成进度</span>
-              <strong>2 / 5 项</strong>
+              <strong id="progress-count">0 / 0 项</strong>
             </div>
             <div class="progress-track" aria-hidden="true">
-              <div class="progress-fill"></div>
+              <div class="progress-fill" id="progress-fill"></div>
             </div>
           </div>
         </div>
@@ -598,5 +606,300 @@
 
     <p class="footer-note">留一点空白，给计划之外的好事。</p>
   </main>
+  <script>
+    (() => {
+      const memoStorageKey = "little-days-memos";
+      const today = new Date();
+      const dateKey = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0")
+      ].join("-");
+      const taskStorageKey = `little-days-tasks-${dateKey}`;
+
+      const defaultMemos = [
+        {
+          id: "memo-mint",
+          title: "记得给阳台的薄荷浇水",
+          content: "最近天气有点干，顺便看看新长出来的小叶子。",
+          createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8, 15).toISOString()
+        },
+        {
+          id: "memo-coffee",
+          title: "周末咖啡豆补货",
+          content: "试试上次朋友推荐的耶加雪菲，记得带上帆布袋。",
+          createdAt: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 9, 32).toISOString()
+        }
+      ];
+
+      const defaultTasks = [
+        { id: "task-breakfast", time: "08:00 – 09:00", name: "晨间整理与早餐", note: "慢慢开始新的一天", completed: true },
+        { id: "task-email", time: "09:30 – 10:30", name: "回复邮件，整理本周重点", note: "先处理最重要的三件事", completed: true },
+        { id: "task-focus", time: "11:00 – 12:00", name: "专注工作时间", note: "完成提案初稿 · 不看手机", completed: false },
+        { id: "task-reading", time: "14:00 – 15:30", name: "阅读与灵感记录", note: "留一点时间给自己", completed: false },
+        { id: "task-walk", time: "17:30 – 18:00", name: "散步，顺路买些水果", note: "到户外透透气", completed: false }
+      ];
+
+      const memoList = document.querySelector("#memo-list");
+      const taskList = document.querySelector("#task-list");
+      const memoForm = document.querySelector("#memo-form");
+      const statusMessage = document.querySelector("#storage-status");
+      let memos = loadData(memoStorageKey, defaultMemos, isMemo);
+      let tasks = loadData(taskStorageKey, defaultTasks, isTask);
+
+      document.querySelector("#today-date").dateTime = dateKey;
+      document.querySelector("#today-date").textContent = new Intl.DateTimeFormat("zh-CN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long"
+      }).format(today);
+      document.querySelector("#day-label").textContent =
+        `${new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(today).toUpperCase()} · 今天`;
+
+      renderMemos();
+      renderTasks();
+
+      memoForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const titleInput = memoForm.elements.namedItem("memo-title");
+        const contentInput = memoForm.elements.namedItem("memo-content");
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+        if (!title || !content) {
+          return;
+        }
+
+        memos.unshift({
+          id: createId(),
+          title,
+          content,
+          createdAt: new Date().toISOString()
+        });
+        persist(memoStorageKey, memos);
+        renderMemos();
+        memoForm.reset();
+        titleInput.focus();
+      });
+
+      memoList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-delete-memo]");
+        if (!button) {
+          return;
+        }
+        memos = memos.filter((memo) => memo.id !== button.dataset.deleteMemo);
+        persist(memoStorageKey, memos);
+        renderMemos();
+      });
+
+      taskList.addEventListener("change", (event) => {
+        const checkbox = event.target.closest("[data-task-id]");
+        if (!checkbox) {
+          return;
+        }
+        const task = tasks.find((item) => item.id === checkbox.dataset.taskId);
+        if (!task) {
+          return;
+        }
+        task.completed = checkbox.checked;
+        persist(taskStorageKey, tasks);
+        renderTasks();
+      });
+
+      taskList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-delete-task]");
+        if (!button) {
+          return;
+        }
+        tasks = tasks.filter((task) => task.id !== button.dataset.deleteTask);
+        persist(taskStorageKey, tasks);
+        renderTasks();
+      });
+
+      function loadData(key, defaults, validator) {
+        try {
+          const stored = localStorage.getItem(key);
+          if (stored === null) {
+            const initialData = defaults.map((item) => ({ ...item }));
+            persist(key, initialData);
+            return initialData;
+          }
+          const data = JSON.parse(stored);
+          if (!Array.isArray(data) || !data.every(validator)) {
+            throw new Error("存储的数据格式不正确。");
+          }
+          return data;
+        } catch (error) {
+          showStorageError(`读取本地数据失败，已暂时显示示例内容。${error.message || error}`);
+          return defaults.map((item) => ({ ...item }));
+        }
+      }
+
+      function persist(key, data) {
+        try {
+          localStorage.setItem(key, JSON.stringify(data));
+          statusMessage.hidden = true;
+        } catch (error) {
+          showStorageError(`保存到本地失败；本次修改暂时只在当前页面有效。${error.message || error}`);
+        }
+      }
+
+      function showStorageError(message) {
+        statusMessage.textContent = message;
+        statusMessage.hidden = false;
+      }
+
+      function isMemo(item) {
+        return item !== null &&
+          typeof item.id === "string" &&
+          typeof item.title === "string" &&
+          typeof item.content === "string" &&
+          typeof item.createdAt === "string";
+      }
+
+      function isTask(item) {
+        return item !== null &&
+          typeof item.id === "string" &&
+          typeof item.time === "string" &&
+          typeof item.name === "string" &&
+          typeof item.note === "string" &&
+          typeof item.completed === "boolean";
+      }
+
+      function createId() {
+        return globalThis.crypto && typeof globalThis.crypto.randomUUID === "function"
+          ? globalThis.crypto.randomUUID()
+          : `item-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
+
+      function formatMemoTime(value) {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return "时间未知";
+        }
+        const sameDay = date.getFullYear() === today.getFullYear() &&
+          date.getMonth() === today.getMonth() &&
+          date.getDate() === today.getDate();
+        const dayText = sameDay
+          ? "今天"
+          : `${date.getMonth() + 1}月${date.getDate()}日`;
+        const timeText = new Intl.DateTimeFormat("zh-CN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        }).format(date);
+        return `${dayText} ${timeText}`;
+      }
+
+      function renderMemos() {
+        memoList.replaceChildren();
+        document.querySelector("#memo-count").textContent = `共 ${memos.length} 条`;
+
+        if (memos.length === 0) {
+          memoList.append(createEmptyState("还没有备忘，记下第一件想记住的事吧。"));
+          return;
+        }
+
+        memos.forEach((memo) => {
+          const card = document.createElement("article");
+          card.className = "memo-card";
+
+          const title = document.createElement("h3");
+          title.className = "memo-title";
+          title.textContent = memo.title;
+
+          const content = document.createElement("p");
+          content.className = "memo-content";
+          content.textContent = memo.content;
+
+          const time = document.createElement("time");
+          time.className = "memo-time";
+          time.dateTime = memo.createdAt;
+          time.textContent = formatMemoTime(memo.createdAt);
+
+          const remove = createDeleteButton("删除这条备忘");
+          remove.classList.add("memo-delete");
+          remove.dataset.deleteMemo = memo.id;
+
+          card.append(title, content, time, remove);
+          memoList.append(card);
+        });
+      }
+
+      function renderTasks() {
+        taskList.replaceChildren();
+        const completedCount = tasks.filter((task) => task.completed).length;
+        const totalCount = tasks.length;
+        const progressText = `${completedCount} / ${totalCount}`;
+
+        document.querySelector("#task-count").textContent = `${progressText} 完成`;
+        document.querySelector("#progress-count").textContent = `${progressText} 项`;
+        document.querySelector("#task-progress").setAttribute(
+          "aria-label",
+          `今日计划完成进度：${totalCount} 项中的 ${completedCount} 项`
+        );
+        document.querySelector("#progress-fill").style.width =
+          `${totalCount === 0 ? 0 : (completedCount / totalCount) * 100}%`;
+
+        if (totalCount === 0) {
+          taskList.append(createEmptyState("今日计划已清空。"));
+          return;
+        }
+
+        tasks.forEach((task) => {
+          const row = document.createElement("div");
+          row.className = `task-row${task.completed ? " is-done" : ""}`;
+
+          const time = document.createElement("time");
+          time.className = "task-time";
+          time.dateTime = task.time.split("–")[0].trim();
+          time.textContent = task.time;
+
+          const details = document.createElement("div");
+          const name = document.createElement("p");
+          name.className = "task-name";
+          name.textContent = task.name;
+          details.append(name);
+          if (task.note) {
+            const note = document.createElement("p");
+            note.className = "task-note";
+            note.textContent = task.note;
+            details.append(note);
+          }
+
+          const checkbox = document.createElement("input");
+          checkbox.className = "task-check";
+          checkbox.type = "checkbox";
+          checkbox.checked = task.completed;
+          checkbox.dataset.taskId = task.id;
+          checkbox.setAttribute("aria-label", `${task.name}${task.completed ? "已完成" : "是否完成"}`);
+
+          const remove = createDeleteButton(`删除任务：${task.name}`);
+          remove.classList.add("task-delete");
+          remove.dataset.deleteTask = task.id;
+
+          row.append(time, details, checkbox, remove);
+          taskList.append(row);
+        });
+      }
+
+      function createDeleteButton(label) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "delete-button";
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        button.textContent = "×";
+        return button;
+      }
+
+      function createEmptyState(message) {
+        const emptyState = document.createElement("p");
+        emptyState.className = "empty-state";
+        emptyState.textContent = message;
+        return emptyState;
+      }
+    })();
+  </script>
 </body>
 </html>
