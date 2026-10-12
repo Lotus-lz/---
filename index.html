@@ -564,7 +564,7 @@
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">✳</div>
         <div>
-          <p class="brand-name">小日子 · 计划簿</p>
+          <p class="brand-name">叶明慧专属宇宙超级无敌爆炸计划表</p>
           <p class="brand-caption">给生活一点从容</p>
         </div>
       </div>
@@ -668,6 +668,13 @@
         String(today.getDate()).padStart(2, "0")
       ].join("-");
       const taskStorageKey = `little-days-tasks-${dateKey}`;
+      const legacyDefaultTaskIds = new Set([
+        "task-breakfast",
+        "task-email",
+        "task-focus",
+        "task-reading",
+        "task-walk"
+      ]);
 
       const defaultMemos = [
         {
@@ -684,14 +691,6 @@
         }
       ];
 
-      const defaultTasks = [
-        { id: "task-breakfast", time: "08:00 – 09:00", name: "晨间整理与早餐", note: "慢慢开始新的一天", completed: true },
-        { id: "task-email", time: "09:30 – 10:30", name: "回复邮件，整理本周重点", note: "先处理最重要的三件事", completed: true },
-        { id: "task-focus", time: "11:00 – 12:00", name: "专注工作时间", note: "完成提案初稿 · 不看手机", completed: false },
-        { id: "task-reading", time: "14:00 – 15:30", name: "阅读与灵感记录", note: "留一点时间给自己", completed: false },
-        { id: "task-walk", time: "17:30 – 18:00", name: "散步，顺路买些水果", note: "到户外透透气", completed: false }
-      ];
-
       const memoList = document.querySelector("#memo-list");
       const taskList = document.querySelector("#task-list");
       const memoForm = document.querySelector("#memo-form");
@@ -699,7 +698,12 @@
       const statusMessage = document.querySelector("#storage-status");
       const storageErrors = new Map();
       let memos = loadData(memoStorageKey, defaultMemos, isMemo);
-      let tasks = loadData(taskStorageKey, defaultTasks, isTask);
+      let tasks = loadData(taskStorageKey, [], isTask);
+      const loadedTaskCount = tasks.length;
+      tasks = tasks.filter((task) => !legacyDefaultTaskIds.has(task.id));
+      if (tasks.length !== loadedTaskCount) {
+        persist(taskStorageKey, tasks);
+      }
 
       document.querySelector("#today-date").dateTime = dateKey;
       document.querySelector("#today-date").textContent = new Intl.DateTimeFormat("zh-CN", {
