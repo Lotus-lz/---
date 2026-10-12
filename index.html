@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f4ef">
+  <title>日常备忘 · 每日计划</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f6f4ef;
+      --paper: #fffefa;
+      --ink: #282923;
+      --muted: #92938a;
+      --line: #ecebe4;
+      --green: #55745e;
+      --green-soft: #edf2ec;
+      --orange: #d88762;
+      --shadow: 0 14px 40px rgba(48, 49, 39, 0.055);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 48px 28px 64px;
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(226, 221, 203, 0.28), transparent 32rem),
+        var(--page);
+      color: var(--ink);
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
+    }
+
+    .app {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 34px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid #e5e6dc;
+      border-radius: 14px;
+      background: var(--paper);
+      color: var(--green);
+      font-size: 20px;
+    }
+
+    .brand-name {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+    }
+
+    .brand-caption {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .today {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #77796f;
+      font-size: 13px;
+    }
+
+    .today-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #8da58c;
+      box-shadow: 0 0 0 4px #e8eee6;
+    }
+
+    .intro {
+      margin: 0 0 26px;
+    }
+
+    .intro h1 {
+      margin: 0;
+      font-family: Georgia, "Songti SC", "SimSun", serif;
+      font-size: clamp(28px, 4vw, 38px);
+      font-weight: 500;
+      letter-spacing: 0.025em;
+    }
+
+    .intro p {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      align-items: start;
+      gap: 22px;
+    }
+
+    .panel {
+      overflow: hidden;
+      border: 1px solid rgba(231, 230, 221, 0.9);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 25px 26px 20px;
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-icon {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 12px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 17px;
+    }
+
+    .plan-panel .section-icon {
+      background: #f8eee8;
+      color: var(--orange);
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+    }
+
+    .panel-subtitle {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .count {
+      padding: 6px 10px;
+      border-radius: 20px;
+      background: #f3f3ed;
+      color: #787a70;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .panel-body {
+      padding: 0 26px 25px;
+    }
+
+    .memo-form {
+      display: grid;
+      gap: 12px;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fcfbf7;
+    }
+
+    .field {
+      width: 100%;
+      border: 1px solid #e9e8e1;
+      border-radius: 9px;
+      outline: none;
+      background: #fffefa;
+      color: var(--ink);
+      font-size: 13px;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .field::placeholder {
+      color: #b0b1a8;
+    }
+
+    .field:focus {
+      border-color: #a9b9a8;
+      box-shadow: 0 0 0 3px rgba(85, 116, 94, 0.09);
+    }
+
+    input.field {
+      height: 42px;
+      padding: 0 12px;
+    }
+
+    textarea.field {
+      min-height: 78px;
+      padding: 11px 12px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .add-button {
+      display: inline-flex;
+      min-height: 39px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--green);
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .add-button:hover {
+      transform: translateY(-1px);
+      background: #46634f;
+    }
+
+    .memo-list {
+      display: grid;
+      gap: 11px;
+      margin-top: 21px;
+    }
+
+    .memo-card {
+      position: relative;
+      padding: 15px 16px 14px 18px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fffefa;
+    }
+
+    .memo-card::before {
+      position: absolute;
+      top: 15px;
+      bottom: 15px;
+      left: 0;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: #a9b99f;
+      content: "";
+    }
+
+    .memo-card:nth-child(2)::before {
+      background: #ddad83;
+    }
+
+    .memo-title {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .memo-content {
+      margin: 7px 0 0;
+      color: #73756c;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .memo-time {
+      display: block;
+      margin-top: 10px;
+      color: #a0a197;
+      font-size: 10px;
+    }
+
+    .day-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 3px 0 14px;
+      color: #77796f;
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.11em;
+    }
+
+    .day-label::after {
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+      content: "";
+    }
+
+    .task-list {
+      display: grid;
+    }
+
+    .task-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 20px;
+      align-items: center;
+      gap: 12px;
+      min-height: 67px;
+      border-bottom: 1px solid #f0efe9;
+    }
+
+    .task-row:last-child {
+      border-bottom: 0;
+    }
+
+    .task-time {
+      color: #92938a;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .task-name {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 550;
+    }
+
+    .task-note {
+      margin: 5px 0 0;
+      color: #a0a197;
+      font-size: 11px;
+    }
+
+    .task-check {
+      width: 17px;
+      height: 17px;
+      margin: 0;
+      accent-color: var(--green);
+      cursor: pointer;
+    }
+
+    .task-row.is-done .task-name {
+      color: #9a9b92;
+      text-decoration: line-through;
+      text-decoration-color: #b7b8af;
+    }
+
+    .progress {
+      margin-top: 18px;
+      padding: 14px 15px;
+      border-radius: 11px;
+      background: #f5f6f1;
+    }
+
+    .progress-copy {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: #77796f;
+      font-size: 11px;
+    }
+
+    .progress-copy strong {
+      color: var(--green);
+      font-weight: 650;
+    }
+
+    .progress-track {
+      height: 5px;
+      margin-top: 10px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #e4e8df;
+    }
+
+    .progress-fill {
+      width: 40%;
+      height: 100%;
+      border-radius: inherit;
+      background: #829b82;
+    }
+
+    .footer-note {
+      margin: 22px 0 0;
+      color: #a1a197;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 30px 18px 44px;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 460px) {
+      body {
+        padding: 22px 13px 34px;
+      }
+
+      .topbar {
+        margin-bottom: 28px;
+      }
+
+      .today {
+        gap: 8px;
+        font-size: 11px;
+      }
+
+      .panel-header {
+        padding: 21px 19px 17px;
+      }
+
+      .panel-body {
+        padding: 0 19px 20px;
+      }
+
+      .task-row {
+        grid-template-columns: 66px 1fr 20px;
+        gap: 9px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">✳</div>
+        <div>
+          <p class="brand-name">小日子 · 计划簿</p>
+          <p class="brand-caption">给生活一点从容</p>
+        </div>
+      </div>
+      <div class="today">
+        <span class="today-dot" aria-hidden="true"></span>
+        <time datetime="2026-10-12">星期一 · 10月12日</time>
+      </div>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <h1 id="page-title">把今天，慢慢过好。</h1>
+      <p>记下值得留意的事，也为重要的事情留出时间。</p>
+    </section>
+
+    <div class="workspace">
+      <section class="panel memo-panel" aria-labelledby="memo-heading">
+        <header class="panel-header">
+          <div class="panel-heading">
+            <span class="section-icon" aria-hidden="true">✎</span>
+            <div>
+              <h2 id="memo-heading">日常备忘录</h2>
+              <p class="panel-subtitle">随手记下，别让灵感溜走</p>
+            </div>
+          </div>
+          <span class="count">今日 2 条</span>
+        </header>
+
+        <div class="panel-body">
+          <form class="memo-form">
+            <label>
+              <span class="sr-only">备忘标题</span>
+              <input class="field" type="text" name="memo-title" placeholder="给这条备忘起个标题">
+            </label>
+            <label>
+              <span class="sr-only">备忘内容</span>
+              <textarea class="field" name="memo-content" placeholder="写下你想记住的内容..."></textarea>
+            </label>
+            <button class="add-button" type="button"><span aria-hidden="true">＋</span> 添加备忘</button>
+          </form>
+
+          <div class="memo-list" aria-label="备忘录列表">
+            <article class="memo-card">
+              <h3 class="memo-title">记得给阳台的薄荷浇水</h3>
+              <p class="memo-content">最近天气有点干，顺便看看新长出来的小叶子。</p>
+              <time class="memo-time" datetime="2026-10-12T08:15">今天 08:15</time>
+            </article>
+            <article class="memo-card">
+              <h3 class="memo-title">周末咖啡豆补货</h3>
+              <p class="memo-content">试试上次朋友推荐的耶加雪菲，记得带上帆布袋。</p>
+              <time class="memo-time" datetime="2026-10-12T09:32">今天 09:32</time>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel plan-panel" aria-labelledby="plan-heading">
+        <header class="panel-header">
+          <div class="panel-heading">
+            <span class="section-icon" aria-hidden="true">◷</span>
+            <div>
+              <h2 id="plan-heading">每日计划表</h2>
+              <p class="panel-subtitle">按自己的节奏，一件一件完成</p>
+            </div>
+          </div>
+          <span class="count">2 / 5 完成</span>
+        </header>
+
+        <div class="panel-body">
+          <p class="day-label">MONDAY · 今天</p>
+          <div class="task-list" aria-label="今日任务列表">
+            <div class="task-row is-done">
+              <time class="task-time" datetime="08:00">08:00 – 09:00</time>
+              <div>
+                <p class="task-name">晨间整理与早餐</p>
+                <p class="task-note">慢慢开始新的一天</p>
+              </div>
+              <input class="task-check" type="checkbox" checked aria-label="晨间整理与早餐已完成">
+            </div>
+            <div class="task-row is-done">
+              <time class="task-time" datetime="09:30">09:30 – 10:30</time>
+              <div>
+                <p class="task-name">回复邮件，整理本周重点</p>
+                <p class="task-note">先处理最重要的三件事</p>
+              </div>
+              <input class="task-check" type="checkbox" checked aria-label="回复邮件，整理本周重点已完成">
+            </div>
+            <div class="task-row">
+              <time class="task-time" datetime="11:00">11:00 – 12:00</time>
+              <div>
+                <p class="task-name">专注工作时间</p>
+                <p class="task-note">完成提案初稿 · 不看手机</p>
+              </div>
+              <input class="task-check" type="checkbox" aria-label="专注工作时间是否完成">
+            </div>
+            <div class="task-row">
+              <time class="task-time" datetime="14:00">14:00 – 15:30</time>
+              <div>
+                <p class="task-name">阅读与灵感记录</p>
+                <p class="task-note">留一点时间给自己</p>
+              </div>
+              <input class="task-check" type="checkbox" aria-label="阅读与灵感记录是否完成">
+            </div>
+            <div class="task-row">
+              <time class="task-time" datetime="17:30">17:30 – 18:00</time>
+              <div>
+                <p class="task-name">散步，顺路买些水果</p>
+                <p class="task-note">到户外透透气</p>
+              </div>
+              <input class="task-check" type="checkbox" aria-label="散步，顺路买些水果是否完成">
+            </div>
+          </div>
+
+          <div class="progress" aria-label="今日计划完成进度：5 项中的 2 项">
+            <div class="progress-copy">
+              <span>今日完成进度</span>
+              <strong>2 / 5 项</strong>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <p class="footer-note">留一点空白，给计划之外的好事。</p>
+  </main>
+</body>
+</html>
